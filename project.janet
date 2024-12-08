@@ -6,4 +6,5 @@
 
 
 (declare-source :source ["src/swayipc.janet"])
-(declare-executable :name "autolayout" :entry "bin/autolayout.janet")
+# (declare-executable :name "autolayout" :entry "bin/autolayout.janet")
+
