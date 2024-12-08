@@ -1,11 +1,38 @@
-(import ../src/swayipc)
-(use ./utils)
+(import swayipc)
 
 (import spork/json)
 (import spork/randgen)
 (use sh)
 
 (def verbose false)
+
+
+## utils
+
+(defn project-recursive "Takes the struct `val` and recursively filters its keys to only the specified `items`" [val items]
+  (cond
+    (table? val)
+    (reduce (fn [acc item] (put acc item (project-recursive (val item) items))) @{} items)
+    (array? val)
+    (map |(project-recursive $ items) val)
+    val))
+
+(defn locate-recursive [obj children-key id-key id]
+  (def nodes (obj children-key))
+  (if (compare= (obj id-key) id) [obj]
+    (match nodes
+      nil nil
+      nodes (label result
+              (each node nodes
+                (def r (locate-recursive node children-key id-key id))
+                (if-not (nil? r)
+                  (return result [obj ;r])))))))
+
+(defn second-last [ind] (ind (- (length ind) 2)))
+
+(defn second-last [ind] (ind (- (length ind) 2)))
+
+## utils end
 
 (defn send [msg]
   (if verbose
