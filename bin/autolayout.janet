@@ -41,7 +41,7 @@
 
 
 (defn workspace-layout [conn]
-  (def tree (swayipc/send conn :get_tree))
+  (def tree (swayipc/send :get_tree conn))
   (project-recursive tree ["name" "type" "id" "orientation" "nodes" "focused" "layout"]))
 
 
@@ -69,20 +69,20 @@
           (>= (length (c1 "nodes")) 2)
           (<= (length path) 4))
     (send "autolayout vertical")
-    (swayipc/command conn "split vertical"))
+    (swayipc/command "split vertical" conn))
 
   (when (and
           (compare= (c1 "orientation") "vertical")
           (compare= (length (c1 "nodes")) 2)
           (compare= ((last (c1 "nodes")) "id") (c0 "id")))
     (send "autolayout horizontal")
-    (swayipc/command conn "split horizontal")))
+    (swayipc/command "split horizontal" conn)))
 
 (defn main [& args]
   (def conn (swayipc/connect))
   (print "Listening for focus events")
 
-  (def result (swayipc/subscribe conn [:window]))
+  (def result (swayipc/subscribe [:window] conn))
 
   (while true
     (do (def event (swayipc/recv conn))

@@ -11,7 +11,8 @@
                                              (blshift (get $ 2) 16)
                                              (blshift (get $ 3) 24)))
                          :main (* "i3-ipc" :u32 :u32)}))
-(defn recv [conn]
+(defn recv [&opt conn]
+  (default conn (connect))
   (def header (ev/read conn 14))
   (def (len ty) (peg/match swayipc-header header))
   (def payload (ev/read conn len))
@@ -76,17 +77,19 @@ EVENTS:
 -	input  Sent when something related to input devices changes
 
   ``
-  [conn message-type &opt payload]
+  [message-type &opt conn payload]
+  (default conn (connect))
   (default payload "")
   (def msg (swayipc-message (get! types message-type) payload))
   (:write conn msg)
   (recv conn))
 
 
-(defn subscribe [conn events]
-  (def result (send conn :subscribe (json/encode events)))
+(defn subscribe [events &opt conn]
+  (default conn (connect))
+  (def result (send :subscribe conn (json/encode events)))
   (assert (compare= (get result "success") true))
   result)
 
-(defn command [conn command]
-  (send conn :run_command command))
+(defn command [command &opt conn]
+  (send :run_command conn command))
