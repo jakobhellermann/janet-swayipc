@@ -64,23 +64,19 @@
 
   (print (string "Focus " ;(interpose " " (map |(string/format "'%s'" (node-name $0)) path))))
 
-  (if (and
-        (compare= (c1 "orientation") "horizontal")
-        (compare= (length (c1 "nodes")) 2)
-        (compare= ((last (c1 "nodes")) "id") (c0 "id"))
-        (compare<= (length path) 4))
+  (when (and
+          (= (c1 "orientation") "horizontal")
+          (>= (length (c1 "nodes")) 2)
+          (<= (length path) 4))
+    (send "autolayout vertical")
+    (swayipc/command conn "split vertical"))
 
-    (do
-      (send "autolayout vertical")
-      (swayipc/command conn "split vertical")))
-
-  (if (and
-        (compare= (c1 "orientation") "vertical")
-        (compare= (length (c1 "nodes")) 2)
-        (compare= ((last (c1 "nodes")) "id") (c0 "id")))
-    (do
-      (send "autolayout horizontal")
-      (swayipc/command conn "split horizontal"))))
+  (when (and
+          (compare= (c1 "orientation") "vertical")
+          (compare= (length (c1 "nodes")) 2)
+          (compare= ((last (c1 "nodes")) "id") (c0 "id")))
+    (send "autolayout horizontal")
+    (swayipc/command conn "split horizontal")))
 
 (defn main [& args]
   (def conn (swayipc/connect))
