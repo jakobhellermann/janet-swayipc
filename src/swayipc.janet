@@ -1,5 +1,9 @@
 (import spork/json)
 
+(defn connect [&opt socket]
+  (default socket ((os/environ) "SWAYSOCK"))
+  (assert socket (string/format "SWAYSOCK env var not defined"))
+  (net/connect :unix socket))
 
 (def- swayipc-header (peg/compile
                        ~{:u32 (/ (<- 4) ,|(+ (blshift (get $ 0) 0)
@@ -7,15 +11,6 @@
                                              (blshift (get $ 2) 16)
                                              (blshift (get $ 3) 24)))
                          :main (* "i3-ipc" :u32 :u32)}))
-
-(defn- swayipc-message [message-type payload]
-  (def msg @"i3-ipc")
-  (buffer/push-uint32 msg :native (length payload))
-  (buffer/push-uint32 msg :native message-type)
-  (buffer/push-string msg payload)
-  (string msg))
-
-
 (defn recv [conn]
   (def header (ev/read conn 14))
   (def (len ty) (peg/match swayipc-header header))
@@ -39,14 +34,17 @@
              :get_inputs 100
              :get_seats 101})
 
+
 (defn- get! [val key]
   (assert (in val key) (string key " not found in " ;(interpose ", " (keys val))))
   (get val key))
 
-(defn connect [&opt socket]
-  (default socket ((os/environ) "SWAYSOCK"))
-  (assert socket (string/format "SWAYSOCK env var not defined"))
-  (net/connect :unix socket))
+(defn- swayipc-message [message-type payload]
+  (def msg @"i3-ipc")
+  (buffer/push-uint32 msg :native (length payload))
+  (buffer/push-uint32 msg :native message-type)
+  (buffer/push-string msg payload)
+  (string msg))
 
 (defn send ``Send a sway ipc message and receive the response
 - 0 	RUN_COMMAND 	Runs the payload as sway commands
