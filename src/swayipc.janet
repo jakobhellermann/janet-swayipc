@@ -106,7 +106,9 @@ https://man.archlinux.org/man/sway-ipc.7.en#EVENTS
 
 
 (defn command [command &opt conn]
-  (send :run_command conn command))
+  (def result (send :run_command conn command))
+  (each sub result
+    (assert (sub "success") (string/format "%s (executing sway command `%s`)" (sub "error") command))))
 
 (defn get-tree [&opt conn]
   (send :get_tree conn))
