@@ -45,14 +45,24 @@
   (project-recursive tree ["name" "type" "id" "orientation" "nodes" "focused" "layout"]))
 
 
+(defn node-name [node]
+  (cond
+    (= (node "type") "workspace") (string/format "%s-%s" (node "name") (node "layout"))
+    (= (node "name") :null) (node "layout")
+    (node "name")))
+
 (defn auto-layout [conn id]
   (def workspaces (workspace-layout conn))
   (def path (locate-recursive workspaces "nodes" "id" id))
 
+  (when (nil? path)
+    (print "Focused node not found in workspace?")
+    (break))
+
   (def c0 (last path))
   (def c1 (second-last path))
 
-  (print (string "Focus " ;(interpose " " (map |(string/format "'%s'" ($0 "name")) path))))
+  (print (string "Focus " ;(interpose " " (map |(string/format "'%s'" (node-name $0)) path))))
 
   (if (and
         (compare= (c1 "orientation") "horizontal")
