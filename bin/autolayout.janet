@@ -41,7 +41,7 @@
 
 
 (defn workspace-layout [conn]
-  (def tree (swayipc/send :get_tree conn))
+  (def tree (swayipc/get-tree conn))
   (project-recursive tree ["name" "type" "id" "orientation" "nodes" "focused" "layout"]))
 
 
@@ -79,15 +79,15 @@
     (swayipc/command "split horizontal" conn)))
 
 (defn main [& args]
-  (def conn (swayipc/connect))
   (print "Listening for focus events")
 
-  (def result (swayipc/subscribe [:window] conn))
+  (def conn (swayipc/connect))
 
-  (while true
-    (do (def event (swayipc/recv conn))
+  (def focused-window (swayipc/focused-window conn))
+  (auto-layout conn (focused-window "id"))
 
-      (match (event "change")
-        "focus" (do
-                  (def id ((event "container") "id"))
-                  (auto-layout conn id))))))
+  (each event (swayipc/subscribe [:window])
+    (match (event "change")
+      "focus" (do
+                (def id ((event "container") "id"))
+                (auto-layout conn id)))))

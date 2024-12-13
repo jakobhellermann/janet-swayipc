@@ -85,11 +85,37 @@ EVENTS:
   (recv conn))
 
 
-(defn subscribe [events &opt conn]
+(defn- do-subscribe [events &opt conn]
   (default conn (connect))
   (def result (send :subscribe conn (json/encode events)))
   (assert (compare= (get result "success") true))
   result)
 
+(defn subscribe ``
+Subscribe to events of the specified types, returning a fiber yielding events.
+
+A list of possible events can be found here:
+https://man.archlinux.org/man/sway-ipc.7.en#EVENTS
+`` [events]
+  (def conn (connect))
+  (def result (do-subscribe [:window] conn))
+  (assert (result "success"))
+  (fiber/new |(forever
+                (def event (recv conn))
+                (yield event))))
+
+
 (defn command [command &opt conn]
   (send :run_command conn command))
+
+(defn get-tree [&opt conn]
+  (send :get_tree conn))
+
+(defn- yield-tree [obj children-key]
+  (yield obj)
+  (each child (obj children-key) (yield-tree child children-key)))
+
+(defn focused-window [&opt conn]
+  (def tree (get-tree conn))
+  (->> (fiber/new |(yield-tree tree "nodes"))
+       (find |($0 "focused"))))
