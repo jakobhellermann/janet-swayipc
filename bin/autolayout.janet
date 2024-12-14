@@ -13,7 +13,7 @@
   (cond
     (table? val)
     (reduce (fn [acc item] (put acc item (project-recursive (val item) items))) @{} items)
-    (array? val)
+    (tuple? val)
     (map |(project-recursive $ items) val)
     val))
 
@@ -27,10 +27,6 @@
                 (def r (locate-recursive node children-key id-key id))
                 (if-not (nil? r)
                   (return result [obj ;r])))))))
-
-(defn second-last [ind] (ind (- (length ind) 2)))
-
-(defn second-last [ind] (ind (- (length ind) 2)))
 
 ## utils end
 
@@ -59,8 +55,7 @@
     (print "Focused node not found in workspace?")
     (break))
 
-  (def c0 (last path))
-  (def c1 (second-last path))
+  (def [c0 c1] (reverse path))
 
   (print (string "Focus " ;(interpose " " (map |(string/format "'%s'" (node-name $0)) path))))
 
